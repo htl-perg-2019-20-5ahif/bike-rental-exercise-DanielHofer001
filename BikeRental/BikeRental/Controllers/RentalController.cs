@@ -72,9 +72,10 @@ namespace BikeRental.Controllers
         {
             try
             {
+
+                var endedRental = await Context.Rentals.FirstOrDefaultAsync(b => b.CustomerID == rental.CustomerID && b.BikeID == rental.BikeID);
                 using var transaction = Context.Database.BeginTransaction();
 
-                var endedRental = await Context.Rentals.FirstAsync(b => b.CustomerID == rental.CustomerID && b.BikeID == rental.BikeID && b.End == DateTime.MinValue);
                 if (endedRental != null)
                 {
                     if (endedRental.TotalCosts == 0)
@@ -83,13 +84,15 @@ namespace BikeRental.Controllers
 
                     }
                     endedRental.Paid = true;
-                }
+                
                 Context.Rentals.Update(endedRental);
 
                 await Context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 return Ok(endedRental);
+                }
+                return NotFound();
             }
             catch (Exception ex)
             {
